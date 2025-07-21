@@ -8,28 +8,50 @@
 import Foundation
 import Combine
 
-class HackerNewsViewModel: ObservableObject {
-    
+class HNListViewModel: ObservableObject {
     @Published var newsList: [HackerNews] = []
-    @Published var errorMessage: String?
+    struct ErrorMessage: Identifiable {
+        var id: String { message }
+        let message: String
+    }
+
+    @Published var errorMessage: ErrorMessage?
+
 
     private var cancellables = Set<AnyCancellable>()
-    private let service: HackerNewsProtocol
     
-    init(service: HackerNewsProtocol = HackerNewsService()) {
-        self.service = service
+    func fetchBestStories() {
+        let bestStoriesURL = URL(string: "https://hacker-news.firebaseio.com/v0/beststories.json")!
+        
+        URLSession.shared.dataTaskPublisher(for: bestStoriesURL)
+            .tryMap { data, response -> [Int] in
+                return try JSONDecoder().decode([Int].self, from: data)
+            }
+            .flatMap { ids -> AnyPublisher<[HackerNews], Error> in
+                let first20 = Array(ids.prefix(20))
+                let publishers = first20.map { self.fetchStory(for: $0) }
+                return Publishers.MergeMany(publishers)
+                    .collect()
+                    .eraseToAnyPublisher()
+            }
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { completion in
+                if case .failure(let error) = completion {
+                    self.errorMessage = ErrorMessage(message: "Bir hata oluştu")
+                }
+            }, receiveValue: { stories in
+                self.newsList = stories.sorted(by: { $0.score > $1.score }) // opsiyonel: skora göre sırala
+            })
+            .store(in: &cancellables)
     }
     
-    func fetchNews() {
-        service.fetchNews()
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                if case .failure(let error) = completion {
-                    self.errorMessage = error.localizedDescription
-                }
-            } receiveValue: { news in
-                self.newsList = news
+    private func fetchStory(for id: Int) -> AnyPublisher<HackerNews, Error> {
+        let url = URL(string: "https://hacker-news.firebaseio.com/v0/item/\(id).json")!
+        
+        return URLSession.shared.dataTaskPublisher(for: url)
+            .tryMap { data, _ in
+                return try JSONDecoder().decode(HackerNews.self, from: data)
             }
-            .store(in: &cancellables)
+            .eraseToAnyPublisher()
     }
 }
