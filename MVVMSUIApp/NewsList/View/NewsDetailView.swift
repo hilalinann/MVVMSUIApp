@@ -17,11 +17,13 @@ struct NewsDetailView: View {
                 .font(.title)
                 .bold()
             Text("Yazan: \(news.author)")
-            Text("Skor: \(news.score) | Yorum: \(news.commentCount)")
+            Text("Skor: \(news.score) | Yorum: \(news.commentCount ?? 0)")
             
-            Link("Haberi Oku", destination: news.url)
-                .font(.headline)
-                .foregroundColor(.blue)
+            if let url = news.url {
+                Link("Haberi Oku", destination: url)
+                    .font(.headline)
+                    .foregroundColor(.blue)
+            }
             
             Spacer()
         }

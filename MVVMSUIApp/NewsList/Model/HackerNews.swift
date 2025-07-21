@@ -7,19 +7,15 @@
 
 import Foundation
 
-import Foundation
-
-struct HackerNews: Identifiable {
+struct HackerNews: Identifiable, Decodable {
     let id: Int
-    let commentCount: Int
+    let commentCount: Int?
     let score: Int
     let author: String
     let title: String
-    let date: Date
-    let url: URL
-}
+    let date: Int?
+    let url: URL?
 
-extension HackerNews: Decodable {
     enum CodingKeys: String, CodingKey {
         case id, score, title, url
         case commentCount = "descendants"
