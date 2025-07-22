@@ -16,9 +16,7 @@ class HackerNewsService: HackerNewsProtocol {
     
     func fetchNews() -> AnyPublisher<[HackerNews], DownloaderError> {
         
-        guard let url = HackerNewsRouter.allNews.url else {
-            return Fail(error: DownloaderError.invalidURL).eraseToAnyPublisher()
-        }
+        let url = NetworkingRouter.bestStories.url
         
         return Future<[HackerNews], DownloaderError> { promise in
             URLSession.shared.dataTask(with: url) { data, response, error in

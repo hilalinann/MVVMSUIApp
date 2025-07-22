@@ -21,9 +21,9 @@ class HNListViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     func fetchBestStories() {
-        let bestStoriesURL = URL(string: "https://hacker-news.firebaseio.com/v0/beststories.json")!
+        let url = NetworkingRouter.bestStories.url
         
-        URLSession.shared.dataTaskPublisher(for: bestStoriesURL)
+        URLSession.shared.dataTaskPublisher(for: url)
             .tryMap { data, response -> [Int] in
                 return try JSONDecoder().decode([Int].self, from: data)
             }
@@ -46,9 +46,9 @@ class HNListViewModel: ObservableObject {
     }
     
     private func fetchStory(for id: Int) -> AnyPublisher<HackerNews, Error> {
-        let url = URL(string: "https://hacker-news.firebaseio.com/v0/item/\(id).json")!
+        let itemURL = NetworkingRouter.item(id).url
         
-        return URLSession.shared.dataTaskPublisher(for: url)
+        return URLSession.shared.dataTaskPublisher(for: itemURL)
             .tryMap { data, _ in
                 return try JSONDecoder().decode(HackerNews.self, from: data)
             }

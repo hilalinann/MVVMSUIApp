@@ -5,15 +5,18 @@
 //  Created by Hilal İnan on 21.07.2025.
 //
 
+// HackerNewsListView.swift
+
 import SwiftUI
 
 struct HackerNewsListView: View {
     @StateObject private var viewModel = HNListViewModel()
-    
+    @State private var selectedRoute: Route?
+
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List(viewModel.newsList) { news in
-                NavigationLink(destination: NewsDetailView(news: news)) {
+                NavigationLink(value: Route.newsDetail(news)) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(news.title)
                             .font(.headline)
@@ -30,7 +33,9 @@ struct HackerNewsListView: View {
             .alert(item: $viewModel.errorMessage) { error in
                 Alert(title: Text("Hata"), message: Text(error.message), dismissButton: .default(Text("Tamam")))
             }
-
+            .navigationDestination(for: Route.self) { route in
+                router.view(for: route)
+            }
         }
     }
 }

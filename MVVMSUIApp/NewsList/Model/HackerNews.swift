@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct HackerNews: Identifiable, Decodable {
+struct HackerNews: Hashable, Identifiable, Decodable {
     let id: Int
     let commentCount: Int?
     let score: Int
