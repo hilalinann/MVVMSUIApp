@@ -15,30 +15,31 @@ protocol APIProtocol {
 class APIService: APIProtocol {
     
     func fetchNews() -> AnyPublisher<[HackerNews], DownloaderError> {
-        
         let url = NetworkingRouter.bestStories.url
-        
-        return Future<[HackerNews], DownloaderError> { promise in
-            URLSession.shared.dataTask(with: url) { data, response, error in
-                
-                if let _ = error {
-                    return promise(.failure(.invalidURL))
+        // 1. Önce ID listesini çek
+        return URLSession.shared.dataTaskPublisher(for: url)
+            .mapError { _ in DownloaderError.invalidURL }
+            .tryMap { data, _ in
+                try JSONDecoder().decode([Int].self, from: data)
+            }
+            .mapError { _ in DownloaderError.dataParseError }
+            // 2. İlk 20 ID için detayları çek
+            .flatMap { ids -> AnyPublisher<[HackerNews], DownloaderError> in
+                let first20 = Array(ids.prefix(20))
+                let publishers = first20.map { id in
+                    URLSession.shared.dataTaskPublisher(for: NetworkingRouter.item(id).url)
+                        .mapError { _ in DownloaderError.invalidURL }
+                        .tryMap { data, _ in
+                            try JSONDecoder().decode(HackerNews.self, from: data)
+                        }
+                        .mapError { _ in DownloaderError.dataParseError }
+                        .eraseToAnyPublisher()
                 }
-                
-                guard let data = data else {
-                    return promise(.failure(.noData))
-                }
-                
-                do {
-                    let newsList = try JSONDecoder().decode([HackerNews].self, from: data)
-                    promise(.success(newsList))
-                } catch {
-                    promise(.failure(.dataParseError))
-                }
-                
-            }.resume()
-        }
-        .eraseToAnyPublisher()
+                return Publishers.MergeMany(publishers)
+                    .collect()
+                    .eraseToAnyPublisher()
+            }
+            .eraseToAnyPublisher()
     }
 }
 

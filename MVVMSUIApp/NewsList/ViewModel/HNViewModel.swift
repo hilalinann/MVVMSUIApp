@@ -21,39 +21,18 @@ class HNViewModel: ObservableObject {
 
 
     private var cancellables = Set<AnyCancellable>()
+    private let service: APIProtocol = APIService()
     
     func fetchBestStories() {
-        let url = NetworkingRouter.bestStories.url
-        
-        URLSession.shared.dataTaskPublisher(for: url)
-            .tryMap { data, response -> [Int] in
-                return try JSONDecoder().decode([Int].self, from: data)
-            }
-            .flatMap { ids -> AnyPublisher<[HackerNews], Error> in
-                let first20 = Array(ids.prefix(20))
-                let publishers = first20.map { self.fetchStory(for: $0) }
-                return Publishers.MergeMany(publishers)
-                    .collect()
-                    .eraseToAnyPublisher()
-            }
+        service.fetchNews()
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { completion in
                 if case .failure(let error) = completion {
                     self.errorMessage = ErrorMessage(message: error.localizedDescription)
                 }
-            }, receiveValue: { stories in
-                self.newsList = stories.sorted(by: { $0.score > $1.score }) // opsiyonel: skora göre sırala
+            }, receiveValue: { news in
+                self.newsList = news.sorted(by: { $0.score > $1.score })
             })
             .store(in: &cancellables)
-    }
-    
-    private func fetchStory(for id: Int) -> AnyPublisher<HackerNews, Error> {
-        let itemURL = NetworkingRouter.item(id).url
-        
-        return URLSession.shared.dataTaskPublisher(for: itemURL)
-            .tryMap { data, _ in
-                return try JSONDecoder().decode(HackerNews.self, from: data)
-            }
-            .eraseToAnyPublisher()
     }
 }
