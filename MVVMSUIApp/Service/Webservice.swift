@@ -16,14 +16,13 @@ class APIService: APIProtocol {
     
     func fetchNews() -> AnyPublisher<[HackerNews], DownloaderError> {
         let url = NetworkingRouter.bestStories.url
-        // 1. Önce ID listesini çek
+        
         return URLSession.shared.dataTaskPublisher(for: url)
             .mapError { _ in DownloaderError.invalidURL }
             .tryMap { data, _ in
                 try JSONDecoder().decode([Int].self, from: data)
             }
             .mapError { _ in DownloaderError.dataParseError }
-            // 2. İlk 20 ID için detayları çek
             .flatMap { ids -> AnyPublisher<[HackerNews], DownloaderError> in
                 let first20 = Array(ids.prefix(20))
                 let publishers = first20.map { id in

@@ -17,13 +17,8 @@ struct ListView: View {
         NavigationStack {
             List(viewModel.newsList) { news in
                 NavigationLink(value: Route.newsDetail(news)) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(news.title)
-                            .font(.headline)
-                        Text("Yazan: \(news.author) | Skor: \(news.score) | Yorum: \(news.commentCount ?? 0)")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                    }
+                    Entry(story: news)
+                    .padding(.vertical, 4)
                 }
             }
             .navigationTitle("Hacker News")
@@ -37,5 +32,18 @@ struct ListView: View {
                 router.view(for: route)
             }
         }
+    }
+}
+
+extension Entry {
+    init(story: HackerNews) {
+        self.title = story.title
+        self.score = story.score
+        self.commentCount = story.commentCount ?? 0
+        self.author = story.author
+        
+        let host = story.url?.hostName() ?? ""
+        let date = story.date?.timeAgoDisplay() ?? ""
+        self.footnote = "\(host) – \(date) – by \(story.author)"
     }
 }
