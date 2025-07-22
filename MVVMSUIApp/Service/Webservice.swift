@@ -8,11 +8,11 @@
 import Foundation
 import Combine
 
-protocol HackerNewsProtocol {
+protocol APIProtocol {
     func fetchNews() -> AnyPublisher<[HackerNews], DownloaderError>
 }
 
-class HackerNewsService: HackerNewsProtocol {
+class APIService: APIProtocol {
     
     func fetchNews() -> AnyPublisher<[HackerNews], DownloaderError> {
         
@@ -22,7 +22,7 @@ class HackerNewsService: HackerNewsProtocol {
             URLSession.shared.dataTask(with: url) { data, response, error in
                 
                 if let _ = error {
-                    return promise(.failure(.networkError))
+                    return promise(.failure(.invalidURL))
                 }
                 
                 guard let data = data else {
@@ -45,7 +45,6 @@ class HackerNewsService: HackerNewsProtocol {
 
 enum DownloaderError: Error {
     case invalidURL
-    case networkError
     case noData
     case dataParseError
 }
@@ -55,8 +54,6 @@ extension DownloaderError: LocalizedError {
         switch self {
         case .invalidURL:
             return "URL oluşturulamadı."
-        case .networkError:
-            return "Ağ bağlantı hatası oluştu."
         case .noData:
             return "Sunucudan veri alınamadı."
         case .dataParseError:
