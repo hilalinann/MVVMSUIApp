@@ -20,7 +20,7 @@ struct HackerNewsListView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(news.title)
                             .font(.headline)
-                        Text("Yazan: \(news.author) | Skor: \(news.score) | Yorum: \(news.commentCount)")
+                        Text("Yazan: \(news.author) | Skor: \(news.score) | Yorum: \(news.commentCount ?? 0)")
                             .font(.subheadline)
                             .foregroundColor(.gray)
                     }

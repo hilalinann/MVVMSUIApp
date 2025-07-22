@@ -37,7 +37,7 @@ class HNListViewModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { completion in
                 if case .failure(let error) = completion {
-                    self.errorMessage = ErrorMessage(message: "Bir hata oluştu")
+                    self.errorMessage = ErrorMessage(message: error.localizedDescription)
                 }
             }, receiveValue: { stories in
                 self.newsList = stories.sorted(by: { $0.score > $1.score }) // opsiyonel: skora göre sırala
