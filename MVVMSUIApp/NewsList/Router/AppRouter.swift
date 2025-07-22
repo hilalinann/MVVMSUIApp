@@ -13,7 +13,7 @@ struct AppRouter {
     func view(for route: Route) -> some View {
         switch route {
         case .newsDetail(let news):
-            return AnyView(NewsDetailView(news: news))
+            return AnyView(DetailView(news: news))
         }
     }
 }

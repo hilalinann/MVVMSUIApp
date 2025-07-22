@@ -9,8 +9,8 @@
 
 import SwiftUI
 
-struct HackerNewsListView: View {
-    @StateObject private var viewModel = HNListViewModel()
+struct ListView: View {
+    @StateObject private var viewModel = HNViewModel()
     @State private var selectedRoute: Route?
 
     var body: some View {

@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct NewsDetailView: View {
+struct DetailView: View {
     let news: HackerNews
     
     var body: some View {

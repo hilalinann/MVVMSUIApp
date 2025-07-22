@@ -8,8 +8,10 @@
 import Foundation
 import Combine
 
-class HNListViewModel: ObservableObject {
+class HNViewModel: ObservableObject {
+    
     @Published var newsList: [HackerNews] = []
+    
     struct ErrorMessage: Identifiable {
         var id: String { message }
         let message: String
